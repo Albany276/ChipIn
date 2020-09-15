@@ -1,25 +1,31 @@
 from rest_framework import serializers
 from .models import CustomUser
 
+
 class CustomUserSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField()
     username = serializers.CharField(max_length=200)
     email = serializers.CharField(max_length=200)
     #New fields as of 13/09
-    password = serializers.CharField(max_length=50)
+    password = serializers.CharField(write_only = True) #data goes only one way into the database, calling it password makes it recognizable to create_user
     first_name = serializers.CharField(max_length=80)
     last_name = serializers.CharField(max_length=80)
-    phone = serializers.IntegerField()
-    image = serializers.URLField(max_length=200)
-    country = serializers.CharField(max_length=80) 
-    date_created = serializers.DateTimeField()
-
+    #phone = serializers.IntegerField(required=False)
+    #image = serializers.URLField(max_length=200, required=False)
+    #country = serializers.CharField(max_length=80, required=False) 
+    #date_created = serializers.DateTimeField()
 
     def create(self, validated_data):
-        return CustomUser.objects.create(**validated_data)
+        return CustomUser.objects.create_user(**validated_data) #changed to create_user rather than create to give us the ability to add the password the field
+        #the password does not just get saved as data in the database, it seals it criptographically.
 
 class CustomUserDetailSerializer(CustomUserSerializer):
     #allows the serializer to perform updates on our model
+    phone = serializers.IntegerField(required=False)
+    image = serializers.URLField(max_length=200, required=False)
+    country = serializers.CharField(max_length=80, required=False) 
+    date_created = serializers.DateTimeField(read_only = True)
+
     def update(self, instance, validated_data): #instance will be the user in question
         instance.email = validated_data.get('email', instance.email) #only giving the user the ability to change their email
         instance.first_name = validated_data.get('first_name', instance.first_name)
