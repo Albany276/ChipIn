@@ -14,6 +14,8 @@ class CustomUserSerializer(serializers.Serializer):
     #image = serializers.URLField(max_length=200, required=False)
     #country = serializers.CharField(max_length=80, required=False) 
     #date_created = serializers.DateTimeField()
+    #By commenting out the above fields, then the serializer does not expect these fields when a request is created
+    #previously this was creating errors if the post request did not have all the expected fields
 
     def create(self, validated_data):
         return CustomUser.objects.create_user(**validated_data) #changed to create_user rather than create to give us the ability to add the password the field
@@ -21,10 +23,14 @@ class CustomUserSerializer(serializers.Serializer):
 
 class CustomUserDetailSerializer(CustomUserSerializer):
     #allows the serializer to perform updates on our model
+    #These fields are now defined here because they were not defined in the CustomUserSerializer
+    #The fact that instance.xx exists mean that if we dont give the serializer any value in those fields then 
+    #it will assign whatever it used to have, so in the case of say phone, it would be null
     phone = serializers.IntegerField(required=False)
     image = serializers.URLField(max_length=200, required=False)
     country = serializers.CharField(max_length=80, required=False) 
     date_created = serializers.DateTimeField(read_only = True)
+    #if we dont call out these fields in the serializer then they would not be visible from Insomnia even if the fields exist in the database
 
     def update(self, instance, validated_data): #instance will be the user in question
         instance.email = validated_data.get('email', instance.email) #only giving the user the ability to change their email

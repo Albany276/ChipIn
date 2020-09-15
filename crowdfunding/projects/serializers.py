@@ -8,7 +8,7 @@ class PledgeSerializer(serializers.Serializer):
     amount = serializers.IntegerField()
     comment = serializers.CharField(max_length=200)
     anonymous = serializers.BooleanField()
-    supporter = serializers.CharField(max_length=200)
+    supporter = serializers.ReadOnlyField(source='supporter.id') #supporter.id gets setup in views.py
     project_id = serializers.IntegerField() #cannot hand over the project object
 
     def create(self, validated_data):
