@@ -4,7 +4,7 @@ from django.utils import timezone
 # Create your models here.
 
 class CustomUser(AbstractUser):
-    password = models.CharField(max_length=50)
+   # password = models.CharField(max_length=50) already included in AbstractUser
     first_name = models.CharField(max_length=80)
     last_name = models.CharField(max_length=80)
     phone = models.IntegerField(null=True)
