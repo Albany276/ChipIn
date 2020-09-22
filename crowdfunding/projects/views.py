@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Project, Pledge
 from .serializers import ProjectSerializer, PledgeSerializer, ProjectDetailSerializer
-from django.http import Http404
+from django.http import Http404, HttpResponse, HttpResponseNotFound
 from rest_framework import status, permissions
 from .permissions import IsOwnerOrReadOnly 
 
@@ -75,23 +75,38 @@ class ProjectDetail(APIView):
 class PledgeList(APIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly] #this definition exists on the rest_framework, only ppl that logged in can update info
     
- 
 
     def get(self, request):
         pledges = Pledge.objects.all()
         serializer = PledgeSerializer(pledges, many=True)
         return Response(serializer.data)
 
-   #in here I would like to create a permission to check that the supporter is not the project owner
 
+   
     def post(self, request):
         serializer = PledgeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(supporter = request.user)
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED)
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
-        )
+
+     # Below we are going to check that the project id exists and also that the creator of the pledge (supporter) is not the project owner
+        try: 
+            aux2 = request.data["project_id"] #gets project id from the request.data dictionary
+            project=Project.objects.get(pk=aux2) #gets the project with the relevant pk from the database
+           
+            if project.owner == request.user: #checks if the user making the pledge is the same as the owner of the project
+               # return Response(status=status.HTTP_204_NO_CONTENT) #if that is the case raise an error
+                return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
+
+            else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
+                if serializer.is_valid():
+                    serializer.save(supporter = request.user)
+                    return Response(
+                        serializer.data,
+                        status=status.HTTP_201_CREATED)
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Project.DoesNotExist:
+            raise Http404
+
+       
