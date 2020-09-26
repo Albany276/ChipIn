@@ -84,8 +84,6 @@ class PledgeList(APIView):
 
    
     def post(self, request):
-        serializer = PledgeSerializer(data=request.data)
-
      # Below we are going to check that the project id exists and also that the creator of the pledge (supporter) is not the project owner
         try: 
             aux2 = request.data["project_id"] #gets project id from the request.data dictionary
@@ -96,8 +94,15 @@ class PledgeList(APIView):
                 return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
 
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
+                serializer = PledgeSerializer(data=request.data)
+
                 if serializer.is_valid():
                     serializer.save(supporter = request.user)
+
+                    #creating a tally of amount pledged
+                    project.amount_raised = request.data["amount"] + project.amount_raised #request.data["amount"] gives you the pledge amount 
+                    project.save() #this saves it back to the project, you dont need to use the put method, those methods are for ppl interacting with the api
+
                     return Response(
                         serializer.data,
                         status=status.HTTP_201_CREATED)
@@ -108,5 +113,8 @@ class PledgeList(APIView):
 
         except Project.DoesNotExist:
             raise Http404
+
+
+
 
        

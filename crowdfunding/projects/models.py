@@ -9,6 +9,8 @@ class Project(models.Model):
     image = models.URLField()
     is_open = models.BooleanField()
     date_created = models.DateTimeField()
+    country = models.CharField(max_length=80, default="Australia") # 26/09 - adding country to the database
+    amount_raised = models.IntegerField(default=0) #26/09 - adding amount raised to keep a tally of pledges vs goal
     owner = models.ForeignKey(
         get_user_model(),
         on_delete=models.CASCADE, #deletes projects if user is deleted

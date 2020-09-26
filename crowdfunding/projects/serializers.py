@@ -23,6 +23,8 @@ class ProjectSerializer(serializers.Serializer):
     image = serializers.URLField()
     is_open = serializers.BooleanField()
     date_created = serializers.DateTimeField()
+    country = serializers.CharField(max_length=80, required=False) #26/09 - added
+    amount_raised = serializers.ReadOnlyField(default=0) #26/09 - creaated as read only so the user cannot just pass the amount raised here, it depends on the tally logic under Pledge in views.py
     owner = serializers.ReadOnlyField(source='owner.id') #owner.id gets setup in views.py
     
 
@@ -41,6 +43,8 @@ class ProjectDetailSerializer(ProjectSerializer): #inherits everything from Proj
         instance.is_open = validated_data.get('is_open', instance.is_open)
         instance.date_created = validated_data.get('date_created', instance.date_created)
         #instance.owner = validated_data.get('owner', instance.owner)
+        instance.country = validated_data.get('country', instance.country)
+    
         instance.owner = instance.owner #if this is implemented then the owner of the project cannot be changed
         instance.save()
         return instance
