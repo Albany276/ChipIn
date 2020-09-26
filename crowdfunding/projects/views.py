@@ -93,6 +93,14 @@ class PledgeList(APIView):
                # return Response(status=status.HTTP_204_NO_CONTENT) #if that is the case raise an error
                 return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
 
+            #Trying to allow pledges only if goal has not been reached
+            temp_amount = project.amount_raised + request.data["amount"] #adds project amount raised with the amount to be pledged
+            amount_left = project.goal - project.amount_raised #checks the amount left to reach project goal
+
+            if temp_amount > project.goal: # if the amount raised + pledged amount is larger than the goal then you get a response to adjust the amount of the pledge
+                return HttpResponseNotFound(f'<h3> your current pledged amount is surpassing the project goal. Remaining amount to be pledges is ${amount_left} please adjust your pledge amount and try again. Thanks!</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
+
+            
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
                 serializer = PledgeSerializer(data=request.data)
 
@@ -103,9 +111,14 @@ class PledgeList(APIView):
                     project.amount_raised = request.data["amount"] + project.amount_raised #request.data["amount"] gives you the pledge amount 
                     project.save() #this saves it back to the project, you dont need to use the put method, those methods are for ppl interacting with the api
 
+                    if temp_amount == project.goal: #if goal is reached then close the project
+                        project.is_open = False 
+                        project.save()
+
                     return Response(
                         serializer.data,
                         status=status.HTTP_201_CREATED)
+                
                 return Response(
                     serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST
