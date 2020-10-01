@@ -98,7 +98,7 @@ class PledgeList(APIView):
             amount_left = project.goal - project.amount_raised #checks the amount left to reach project goal
 
             if temp_amount > project.goal: # if the amount raised + pledged amount is larger than the goal then you get a response to adjust the amount of the pledge
-                return HttpResponseNotFound(f'<h3> your current pledged amount is surpassing the project goal. Remaining amount to be pledges is ${amount_left} please adjust your pledge amount and try again. Thanks!</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
+                return HttpResponse(f'<h3> your current pledged amount is surpassing the project goal. Remaining amount to be pledged is ${amount_left} please adjust your pledge amount and try again. Thanks!</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
 
             
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
