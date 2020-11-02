@@ -111,7 +111,7 @@ class PledgeList(APIView):
                 # 01.11: As per Ollie's suggestion returning a 400 code rather than a html message
                 detail=["your pledge is surpassing the project goal", amount_left]
                 # seems like return can only have 2 arguments, so saving detail as an array instead
-                return Response(
+                return Response(amount_left,
                         status=status.HTTP_400_BAD_REQUEST)
             
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
