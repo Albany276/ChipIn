@@ -89,11 +89,18 @@ class PledgeList(APIView):
             aux2 = request.data["project_id"] #gets project id from the request.data dictionary
             project=Project.objects.get(pk=aux2) #gets the project with the relevant pk from the database
            
+            # 01/11: if project is closed then dont take more pledges
+            if project.is_open == False:
+                detail = "this project is closed and is not accepting any more pledges"
+                return Response(detail, status=status.HTTP_423_LOCKED)
+
+
             if project.owner == request.user: #checks if the user making the pledge is the same as the owner of the project
             # return Response(status=status.HTTP_204_NO_CONTENT) #if that is the case raise an error
             # return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
             # 01/11: as per Ollie's suggestion raising 403 rather than writing that you cant pledge to your own project
-                return Response(status=status.HTTP_403_FORBIDDEN)
+                detail = "you cant pledge to your own project"
+                return Response(detail, status=status.HTTP_403_FORBIDDEN)
 
             #Trying to allow pledges only if goal has not been reached
             temp_amount = project.amount_raised + request.data["amount"] #adds project amount raised with the amount to be pledged
@@ -102,8 +109,10 @@ class PledgeList(APIView):
             if temp_amount > project.goal: # if the amount raised + pledged amount is larger than the goal then you get a response to adjust the amount of the pledge
                 # return HttpResponse(f'<h3> your current pledged amount is surpassing the project goal. Remaining amount to be pledged is ${amount_left} please adjust your pledge amount and try again. Thanks!</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
                 # 01.11: As per Ollie's suggestion returning a 400 code rather than a html message
+                detail=["your pledge is surpassing the project goal", amount_left]
+                # seems like return can only have 2 arguments, so saving detail as an array instead
                 return Response(
-                        amount_left,
+                        detail,
                         status=status.HTTP_400_BAD_REQUEST)
             
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
