@@ -92,7 +92,7 @@ class PledgeList(APIView):
             # 01/11: if project is closed then dont take more pledges
             if project.is_open == False:
                 detail = "this project is closed and is not accepting any more pledges"
-                return Response(detail, status=status.HTTP_423_LOCKED)
+                return Response(status=status.HTTP_423_LOCKED)
 
 
             if project.owner == request.user: #checks if the user making the pledge is the same as the owner of the project
@@ -100,7 +100,7 @@ class PledgeList(APIView):
             # return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
             # 01/11: as per Ollie's suggestion raising 403 rather than writing that you cant pledge to your own project
                 detail = "you cant pledge to your own project"
-                return Response(detail, status=status.HTTP_403_FORBIDDEN)
+                return Response(status=status.HTTP_403_FORBIDDEN)
 
             #Trying to allow pledges only if goal has not been reached
             temp_amount = project.amount_raised + request.data["amount"] #adds project amount raised with the amount to be pledged
@@ -112,7 +112,6 @@ class PledgeList(APIView):
                 detail=["your pledge is surpassing the project goal", amount_left]
                 # seems like return can only have 2 arguments, so saving detail as an array instead
                 return Response(
-                        detail,
                         status=status.HTTP_400_BAD_REQUEST)
             
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
