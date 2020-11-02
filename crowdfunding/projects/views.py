@@ -90,16 +90,21 @@ class PledgeList(APIView):
             project=Project.objects.get(pk=aux2) #gets the project with the relevant pk from the database
            
             if project.owner == request.user: #checks if the user making the pledge is the same as the owner of the project
-               # return Response(status=status.HTTP_204_NO_CONTENT) #if that is the case raise an error
-                return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
+            # return Response(status=status.HTTP_204_NO_CONTENT) #if that is the case raise an error
+            # return HttpResponseNotFound('<h3>you cant pledge to your own project</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
+            # 01/11: as per Ollie's suggestion raising 403 rather than writing that you cant pledge to your own project
+                return Response(status=status.HTTP_403_FORBIDDEN)
 
             #Trying to allow pledges only if goal has not been reached
             temp_amount = project.amount_raised + request.data["amount"] #adds project amount raised with the amount to be pledged
             amount_left = project.goal - project.amount_raised #checks the amount left to reach project goal
 
             if temp_amount > project.goal: # if the amount raised + pledged amount is larger than the goal then you get a response to adjust the amount of the pledge
-                return HttpResponse(f'<h3> your current pledged amount is surpassing the project goal. Remaining amount to be pledged is ${amount_left} please adjust your pledge amount and try again. Thanks!</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
-
+                # return HttpResponse(f'<h3> your current pledged amount is surpassing the project goal. Remaining amount to be pledged is ${amount_left} please adjust your pledge amount and try again. Thanks!</h3>') #found that you can pass html strings to http response. Had to import httresponse at the top of file
+                # 01.11: As per Ollie's suggestion returning a 400 code rather than a html message
+                return Response(
+                        amount_left,
+                        status=status.HTTP_400_BAD_REQUEST)
             
             else: #otherwise if the user making the pledge is not the owner of the project, then save the pledge
                 serializer = PledgeSerializer(data=request.data)
